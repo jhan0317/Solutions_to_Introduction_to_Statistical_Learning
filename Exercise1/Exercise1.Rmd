@@ -130,6 +130,9 @@ The best value for K should be small. The boundary with small K would be more fl
 **(a)**
 
 ```{r}
+library(readr)
+library(tidyverse)
+library(MASS)
 college <- read.csv('College.csv')
 ```
 
@@ -181,7 +184,147 @@ hist(Top10perc)
 
 (vi)
 ```{r}
-library(tidyverse)
 by_elite <- group_by(college, Elite)
 accpet_means <- summarise(by_elite, acceptRate = mean(Accept/Apps), enrollRate = mean(Enroll/Accept))
 ```
+Both accpetance rate and enrollment rate of non-elite universities are lower than those of elite universities.
+
+**#9.**
+
+**(a)**
+```{r}
+auto <- read.table('Auto.data.txt',header=T,na.strings="?")
+auto <- na.omit(auto)
+```
+
+Quantitative: mpg, cylinders, displacement, horsepower, weight, acceleration, year, origin
+
+Qualitative: name               # Is origin quantitative or qualitative?
+
+**(b)**
+```{r}
+sapply(auto[,1:8], range)       # Applys range function to each column
+```
+
+**(c)**
+```{r}
+sapply(auto[,1:8], mean)
+sapply(auto[,1:8], sd)
+```
+
+**(d)**
+```{r}
+newAuto <- auto[-(10:85),]
+sapply(newAuto[,1:8], range)
+sapply(newAuto[,1:8], mean)
+sapply(newAuto[,1:8], sd)
+```
+
+**(e)**
+```{r}
+pairs(auto[,1:8])
+attach(auto)
+par(mfrow=c(2,2))
+plot(cylinders, displacement)
+plot(weight, origin)
+hist(horsepower)
+```
+
+The cylinders and displacement have a poistive relationship.
+
+The range of weight becomes wider with the increasing in origin.
+
+Most of the horsepower is between 70 to 100.
+
+**(f)**
+```{r}
+pairs(auto)
+```
+It seems like the mpg has correlation with all the variables except acceleration and name. Therefore, I would consider to use the other 6 variables for prediction.
+
+**#10.**
+```{r}
+Boston <- Boston
+?Boston
+```
+
+**(a)**
+```{r}
+dim(Boston)
+```
+
+Each row represents an area in the suburbs of Boston and the columns represent the features.
+
+**(b)**
+```{r}
+pairs(Boston[,c(1,2,3,4,5,6,7,14)])
+pairs(Boston[,8:14])
+```
+
+The median value has a strong relationship with per capita crime rate, proprortion of business acres, Charles River, average number of rooms per dwelling, weighted mean of distances to employment centres, accessibility to radial highways, blacks proportion and lower status of the population.
+
+**(c)**
+```{r}
+attach(Boston)
+par(mfrow=c(2,4))
+plot(crim,zn)
+plot(crim,indus)
+plot(crim,chas)
+plot(crim,nox)
+plot(crim,rm)
+plot(crim,age)
+plot(crim,dis)
+plot(crim,rad)
+plot(crim,tax)
+```
+
+Per capita crime rate tends to be higher in the area with few lots over 25,000 sq.ft or close to five employement centres.
+
+Per capita crime tends to be higher when proportion of non-retail business acres per town is around 13 or nitrogen oxides concentration is around 0.6.
+
+Per capita crime tends to be higher when tract bounds river.
+
+Per capita crime has a positive relationship with proportion old units, accessibility to radial highways and tax rate.
+
+**(d)**
+```{r}
+sapply(Boston, range)
+par(mfrow=c(1,3))
+hist(crim)
+hist(tax)
+hist(ptratio)
+```
+
+crime rate is lower (below 1) in most of the area, while some area even have crime rate over 40.
+
+tax rate has two divisions: One is between 200 to 500, and another one is around 680.
+
+Some areas have extreme high pupil-teacher ratios over 20.
+
+**(e)**
+```{r}
+sum(Boston$chas == 1)
+```
+
+35
+
+**(f)**
+```{r}
+median(ptratio)
+```
+19.05
+
+**(g)**
+```{r}
+Boston[Boston$medv == min(medv),]
+summary(Boston)
+```
+
+**(h)**
+```{r}
+sum(rm>7)
+sum(rm>8)
+summary(Boston[Boston$rm>8,])
+```
+
+The crime rate tends to be lower. Households are older. The proportion of non-retail business is lower. Tax rate is lower. Households are away from the highways. Lower status of the population is lower. Median value is higher. 
