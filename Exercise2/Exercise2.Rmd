@@ -44,9 +44,113 @@ Training RSS for the cubic is lower.
 **(d)**
 It depends on how far the true relationship is from the linear regression. If it is close to the linear, then the test RSS for cubic is lower. Otherwise, the test RSS is higher.
 
-**#5.**
+**#9.**
 
+**d**
+```{r}
+auto <- read.csv(file = "Auto.csv")
+auto.lm <- lm(mpg ~.-name, data = auto)
+par(mfrow=c(2,2))
+plot(auto.lm)
+```
 
+The fit isn't good, it exists the discernable patterns in the plot of residual vs. Fitted values.
+There are some leveraged points (333). Luckily, the leverage point is not outlier.
 
+**e**
+```{r}
+summary(lm(mpg~cylinders*displacement + displacement*weight, data=auto))
+```
 
+First, look at the correlation matrix and find the highly correlated variables (cylinders \* displacement and displacement * weight). Then regress with them and find that displacement\* weight has an interaction effect.
+
+**f**
+```{r}
+attach(auto)
+par(mfrow=c(2,2))
+plot(lm(log(mpg) ~ . - name, data = auto))
+```
+
+The heteroscedasticity seems to be less when convert y to log(y).
+
+**#14.**
+
+**(a)**
+```{r}
+set.seed(1)
+x1 = runif(100)
+x2 = 0.5 * x1 + rnorm(100)/10
+y = 2 + 2*x1 + 0.3*x2 + rnorm(100)
+```
+
+**(b)**
+```{r}
+cor(data.frame(y=y, x1=x1, x2=x2))
+plot(x1,x2)
+```
+
+**(c)**
+```{r}
+summary(lm(y~x1+x2))
+anova(lm(y~x1+x2))
+```
+
+y = 2.1305 + 1.4396 \* x1 + 1.0097 * x2
+
+The linear model is different from the original one. We can reject the null hypothesis for beta1 with a high F value and low P value. While we cannot reject the null hypo for beta2.
+
+**(d)**
+```{r}
+summary(lm(y~x1))
+anova(lm(y~x1))
+```
+y = 2.11 + 1.98 * x1
+
+The model fits better with a lower P value.
+
+**(e)**
+```{r}
+summary(lm(y~x2))
+anova(lm(y~x2))
+```
+y = 2.39 + 2.90 * x2
+
+We can reject null hypo with a high F value and a low P value.
+
+**(f)**
+No. This is because of the collinearity. It is hard to identify it when regressing with both of them, but the effect is clear when using only one of them.
+
+**(g)**
+```{r}
+x1=c(x1, 0.1)
+x2=c(x2, 0.8)
+y=c(y,6)
+cor(x1,x2)
+summary(lm(y~x1+x2))
+anova(lm(y~x1+x2))
+par(mfrow=c(2,2))
+plot(lm(y~x1+x2))
+```
+
+In the first model, x1 becomes insignificant while x2 becomes significant.
+
+The additional point is both an outlier and a leverage.
+
+```{r}
+summary(lm(y~x1))
+anova(lm(y~x1))
+par(mfrow=c(2,2))
+plot(lm(y~x1))
+```
+
+In the second model, x1 becomes significant and the additional point is an outlier.
+
+```{r}
+summary(lm(y~x2))
+anova(lm(y~x2))
+par(mfrow=c(2,2))
+plot(lm(y~x2))
+```
+
+In the third model, x2 becomes an outlier.
 

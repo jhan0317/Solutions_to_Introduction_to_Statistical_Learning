@@ -4,6 +4,10 @@ output: html_document
 ---
 
 ### Exercise 1
+##### Name: Jiangxue Han
+##### Computing ID: jh6rg
+
+      
 **#1.**
 
 **(a) The sample size n is extremely large, and the number of predictors p is small.**
@@ -105,7 +109,6 @@ Disadvantages: The model will usually not match the true unknown form and prone 
 **#7.**
 
 **(a)**
-
 Obs.1 = 3
 Obs.2 = 2
 Obs.3 = 3.16
@@ -114,15 +117,12 @@ Obs.5 = 1.41
 Obs.6 = 1.73
 
 **(b)**
-
 Y is green. Because we predict the Y with only 1 nearest neighbor. Obs.5 is the closest one and its Y is green. 
 
 **(c)**
-
 Y is red. Because we predict the Y based on 3 nearest neighbors in this case: Obs.2, Obs.5 and Obs.6. Two of them is red, therefore Y is red.
 
 **(d)**
-
 The best value for K should be small. The boundary with small K would be more flexible and fit better.
 
 **8.**
@@ -136,12 +136,12 @@ library(MASS)
 college <- read.csv('College.csv')
 ```
 
-**(b)** ??????????? Fix does not works
+**(b)** 
 
 ```{r}
 rownames(college) <- college[,1]
 ```
-View(college)
+View(college) # Fix does not work
 
 **(c)**
 
