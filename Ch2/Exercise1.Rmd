@@ -1,11 +1,5 @@
----
-title: "Introduction to statiscal learning"
-output: html_document
----
+*Chapter 2*
 
-### Exercise 1
-##### Name: Jiangxue Han
-##### Computing ID: jh6rg
 
       
 **#1.**
