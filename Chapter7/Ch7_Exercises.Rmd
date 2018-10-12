@@ -1,0 +1,224 @@
+
+##### Chapter 6 Exercises
+Name: Jiangxue Han
+
+Computing ID: jh6rg
+
+**3.**
+```{r}
+x = seq(-2,2,0.1)
+y = 1 + x + -2 * (x-1)^2 * I(x>1)
+plot(x, y)
+```
+
+**6.**
+**(a)**
+```{r}
+library(ISLR)
+library(boot)
+attach(Wage)
+
+set.seed(17)
+cv.error.5=rep(0,5)
+for (i in 1:5){
+  glm.fit=glm(wage~poly(age,i),data=Wage)
+  cv.error.5[i]=cv.glm(Wage,glm.fit,K=5)$delta[1]
+}
+cv.error.5
+```
+Based on the cross validation, degree of 3 seems the most appropriate for model.
+
+```{r}
+fit.1=lm(wage~age,data=Wage)
+fit.2=lm(wage~poly(age,2),data=Wage)
+fit.3=lm(wage~poly(age,3),data=Wage)
+fit.4=lm(wage~poly(age,4),data=Wage)
+fit.5=lm(wage~poly(age,5),data=Wage)
+anova(fit.1,fit.2,fit.3,fit.4,fit.5)
+```
+
+Based on the ANOVA output, degree of 3 seems the most appropriate which is consistent with the result from cross validation.
+```{r}
+agelims = range(age)
+age.grid = seq(agelims[1],agelims[2])
+preds = predict(fit.3,newdata=list(age=age.grid),se=TRUE)  # standard errors
+par(mfrow=c(1,2),mar=c(4.5,4.5,1,1) ,oma=c(0,0,4,0))
+plot(age,wage,xlim=agelims,cex=.5,col="darkgrey")
+title("Degree-3 Polynomial",outer=T)
+lines(age.grid,preds$fit,lwd=2,col="blue")
+```
+
+**(b)**
+```{r}
+set.seed(17)
+cv.i = seq(2,15)
+cv.error=rep(0,14)
+for (i in 2:15){
+  Wage$cut = cut(Wage$age,i)
+  fit=glm(wage~cut,data=Wage)
+  cv.error[i-1]=cv.glm(Wage,fit,K=5)$delta[1]
+}
+cv = data.frame(cbind(cv.i,cv.error))
+cv[cv$cv.error==min(cv$cv.error),]
+```
+
+The error is minimum when cuts=11.
+```{r}
+fit=glm(wage~cut(age,11),data=Wage)
+pred=predict(fit,newdata=list(age=age.grid))
+plot(age,wage,col="gray")
+lines(age.grid,pred,lwd=2)
+```
+
+**7.**
+```{r}
+summary(Wage)
+par(mfrow=c(2,2))
+plot(race,wage)
+plot(education,wage)
+plot(jobclass,wage)
+plot(health,wage)
+```
+It seems that wage has a relationship with race, education, jobclass and health.
+
+1. Polynomial Regression
+```{r}
+fit.1=lm(wage~education,data=Wage)
+fit.2=lm(wage~race,data=Wage)
+fit.3=lm(wage~jobclass,data=Wage)
+fit.4=lm(wage~health,data=Wage)
+fit.5=lm(wage~education+race+jobclass+health,data=Wage)
+summary(fit.5)
+```
+Polynomial regression is not appropriate for categorical variables.
+
+2.Step Functions and Splines are not appropriate for categorical variables.
+
+3. GAM
+```{r}
+library(gam)
+gam.1=gam(wage~s(year)+s(age)+education, data=Wage)
+gam.2=gam(wage~s(year,5)+s(age,5)+education+race, data=Wage)
+gam.3=gam(wage~s(year,5)+s(age,5)+education+race+jobclass, data=Wage)
+gam.4=gam(wage~s(year,5)+s(age,5)+education+race+jobclass+health, data=Wage)
+anova(gam.1,gam.2,gam.3,gam.4,test = 'F')
+gam.5=gam(wage~s(year,5)+s(age,5)+education+jobclass+health, data=Wage)
+par(mfrow=c(2,3))
+plot(gam.5,se=T,col='blue')
+```
+
+It seems that the race is not useful, however jobclass and health do improve the model's performance.
+1st graph: Holding the other variables fixed, wage tends to increase slightly with year.
+2nd graph: Holding the other variables fixed, wage tends to be highest for intermediate values of age, and lowest for the very young and very old.
+3rd graph: Holding the other variables fixed, wage tends to increase with education.
+4th graph: Holding the other variables fixed, wage of information is higher than that of industrial.
+5th graph: Holding the other variables fixed, wage of healthy people is higher than that of unhealthy people.
+All of these findings are intuitive.
+
+**8.**
+```{r}
+attach(Auto)
+summary(Auto)
+pairs(Auto)
+```
+1. Polynomial
+```{r}
+cv.errors = rep(NA, 10)
+for (i in 1:10) {
+  auto.lm = glm(mpg~poly(displacement, i), data=Auto)
+  cv.errors[i] = cv.glm(Auto, auto.lm, K=5)$delta[1]
+}
+which.min(cv.errors)
+
+cv.errors = rep(NA, 10)
+for (i in 1:10) {
+  auto.lm = glm(mpg~poly(horsepower, i), data=Auto)
+  cv.errors[i] = cv.glm(Auto, auto.lm, K=5)$delta[1]
+}
+which.min(cv.errors)
+
+cv.errors = rep(NA, 10)
+for (i in 1:10) {
+  auto.lm = glm(mpg~poly(weight, i), data=Auto)
+  cv.errors[i] = cv.glm(Auto, auto.lm, K=5)$delta[1]
+}
+which.min(cv.errors)
+
+plot.poly <- function(variable,k) {
+  auto.lm = glm(mpg~poly(variable, k), data=Auto)
+  lims = range(variable)
+  v.grid = seq(lims[1],lims[2])
+  preds = predict(auto.lm,newdata=list(variable=v.grid),se=TRUE)
+  plot(variable,mpg,cex=.5,col="darkgrey")
+  title(c("Polynomial",k),xlab=str(variable))
+  lines(v.grid,preds$fit,lwd=2,col="blue")
+}
+
+par(mfrow=c(2,2))
+plot.poly(displacement,10)
+plot.poly(horsepower,7)
+plot.poly(weight,4)
+
+```
+
+Based on cross validation, models with different variable has different best degrees. Displacement: 10. horsepower: 7. weight: 4.
+
+2. Step Functions
+```{r}
+cut.cv.errors <- function(variable){
+  cv.errors = rep(NA, 14)
+  for (i in 2:15) {
+    Auto$cut = cut(variable,i)
+    auto.lm = glm(mpg~cut, data=Auto)
+    cv.errors[i-1] = cv.glm(Auto, auto.lm, K=5)$delta[1]
+  }
+  return (which.min(cv.errors)+1)
+}
+cut.cv.errors(displacement)
+cut.cv.errors(horsepower)
+cut.cv.errors(weight)
+
+weightlims = range(weight)
+weight.grid = seq(weightlims[1],weightlims[2])
+fit=glm(mpg~cut(weight,12),data=Auto)
+pred=predict(fit,newdata=list(weight=weight.grid))
+plot(weight,mpg,col="gray")
+lines(weight.grid,pred,lwd=2)
+title("step function:weight")
+```
+
+Based on cross validation. Best number of cuts for displacement is 9. horsepower:15. weight: 12.
+
+3. Splines
+```{r}
+par(mfrow=c(2,2))
+smooth.spline.plot <- function(variable){
+  lims=range(variable)
+  plot(variable,mpg,xlim=lims,cex=.5,col="darkgrey")
+  fit=smooth.spline(variable,mpg,df=16)
+  fit2=smooth.spline(variable,mpg,cv=TRUE)
+  lines(fit,col="red",lwd=2)
+  lines(fit2,col="blue",lwd=2)  
+  title(c('Smoothing Spline:',round(fit2$df,2)))
+}
+smooth.spline.plot(displacement)
+smooth.spline.plot(horsepower)
+smooth.spline.plot(weight)
+```
+
+Based on cross validation, the best effective degrees of freedom of displacement is 20.03 ????????
+horsepower: 5.8. weight: 10.4.
+4.GAM
+```{r}
+gam.1=gam(mpg~s(displacement,20)+s(horsepower,6)+s(weight,10),data=Auto)
+gam.2=gam(mpg~s(displacement,20)+s(horsepower,6)+s(weight,10)+cylinders,data=Auto)
+gam.3=gam(mpg~s(displacement,20)+s(horsepower,6)+s(weight,10)+cylinders+origin,data=Auto)
+anova(gam.1,gam.2,gam.3,test = "F")
+par(mfrow=c(2,2))
+plot(gam.1,se=T,col="red")
+title("General Additive Model",ylabel="mpg")
+```
+
+It seems that cylinders and origin do not help improve the models. 
+mpg decreases with either horsepower or weight. While it has a dramatic relationship with displacement.
+
