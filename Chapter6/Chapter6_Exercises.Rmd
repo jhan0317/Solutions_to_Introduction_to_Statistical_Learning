@@ -1,0 +1,268 @@
+### Chapter 6 Exercises
+
+**1.**
+
+**(a)**
+Best subset
+
+**(b)**
+Best subset
+
+**(c)**
+
+i.True
+
+ii.True
+
+iii.False
+
+iv.False
+
+v.False
+
+**2.**
+
+**(a)**
+iii. Correct. The lasso is less flexible with l1 penalty, while it does improve the accuracy when its increase in bias is less than its decrease in variance.
+
+**(b)**
+iii. Correct. The ridge is less flexible with l2 penalty, while it does improve the accuracy when its increase in bias is less than its decrease in variance.
+
+**(c)**
+ii. Correct. To some extent, the nonlinear method is more flexible when its increase in variance is less than its decrease in bias.
+
+**3.**
+
+**(a)** iv. Correct. This is the Lasso Regression. S is thought as a budget (opposite from lambda). The model becomes more flexible with s increasing from 0, therefore the training RSS would decrease steadily.
+
+**(b)** ii. Correct. Initially, the increase in bias is less than the decrease in variance. After a certain value of s, the increase in grows faster than decrease in variance, and the test RSS would increase.
+
+**(c)** iii. Correct. The method becomes more flexible and the variance increase steadily. 
+
+**(d)** iv. Correct. With shrinkage, some parameters become zero and the bias will decrease steadily.
+
+**(e)** v. Correct. The s only impacts on variance and bias.
+
+
+**4.**
+**(a)** iii. Ridge Regression. With lambda increasing, the parameters moves closer to zero, resulting in a decrease in training RSS.
+
+**(b)** ii. Initially, the increase in bias is less than decrease in variance, resulting in decrease in test RSS. After a certain value of lambda, the increase in bias is larger than decrease in variance, and the test RSS increases.
+
+**(c)** iv. 
+
+**(d)** iii.
+
+**(e)** v.
+
+**5.**
+
+image: ![](q5.jpeg)
+
+**6.**
+**(a)**
+```{r}
+y1=5
+lambda=2
+b1=seq(-1,6,0.05)
+RSS=((y1-b1)^2)+lambda*(b1^2)
+plot(b1,RSS)
+points(b1[which.min(RSS)],RSS[which.min(RSS)],col="Green",cex=4,pch=20)
+abline(v=y1/(1+lambda),col="red",lwd=3)
+```
+**(b)**
+```{r}
+y1=5
+lamda=2
+b1=seq(-1,6,0.05)
+RSS=((y1-b1)^2)+lambda*abs(b1)
+plot(b1,RSS)
+points(b1[which.min(RSS)],RSS[which.min(RSS)],col="Green",cex=4,pch=20)
+if (y1 > lambda/2) {
+  beta=y1-lambda/2
+}else if (y1 < lambda/2) {
+  beta=y1+lambda/2
+}else {
+  beta = 0
+}
+abline(v=beta,col="red",lwd=3)
+```
+
+**8.**
+
+**(a)**
+```{r}
+x = rnorm(100)
+err = rnorm(100)
+```
+
+**(b)**
+```{r}
+b0=3
+b1=5
+b2=-5
+b3=0.2
+y = b0 + b1*x + b2*(x^2) + b3*(x^3) + err
+```
+
+**(c)**
+```{r}
+library(ISLR)
+library(leaps)
+all = data.frame(x,x^2,x^3,x^4,x^5,x^6,x^7,x^8,x^9,x^10,y)
+regfit.full=regsubsets(y~., all)
+summary(regfit.full)
+
+regfit.full=regsubsets(y~.,data=all,nvmax=9)
+reg.summary=summary(regfit.full)
+par(mfrow=c(2,2))
+plot(reg.summary$rss,xlab="Number of Variables",ylab="Rss",type="l")
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted RSq",type="l")
+which.max(reg.summary$adjr2)
+points(9,reg.summary$adjr2[9],col="red",cex=2,pch=20)
+plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type="l")
+which.min(reg.summary$cp)
+points(3,reg.summary$cp [3],col="red",cex=2,pch=20)
+which.min(reg.summary$bic)
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type="l")
+points(2,reg.summary$bic[2],col="red",cex=2,pch=20)
+
+par(mfrow=c(1,1))
+plot(regfit.full,scale="r2")
+plot(regfit.full,scale="adjr2")
+plot(regfit.full,scale="Cp")
+plot(regfit.full,scale="bic")
+coefficients(regfit.full, id=3)
+```
+
+**(d)**
+```{r}
+set.seed (1)
+train=sample(c(TRUE,FALSE),nrow(all),rep=TRUE)
+test=(!train)
+regfit.fwd=regsubsets(y~.,data=all[train,],nvmax=9,method="forward")
+test.mat=model.matrix(y~.,data=all[test,])
+fwd.val.errors=rep(NA,9)
+for(i in 1:9){
+  coefi=coef(regfit.fwd,id=i)
+  pred=test.mat[,names(coefi)]%*%coefi
+  fwd.val.errors[i]=mean((all$y[test]-pred)^2)
+}
+which.min(fwd.val.errors)
+
+regfit.bwd=regsubsets(y~.,data=all[train,],nvmax=9,method="backward")
+test.mat=model.matrix(y~.,data=all[test,])
+bwd.val.errors=rep(NA,9)
+for(i in 1:9){
+  coefi=coef(regfit.bwd,id=i)
+  pred=test.mat[,names(coefi)]%*%coefi
+  bwd.val.errors[i]=mean((all$y[test]-pred)^2)
+}
+which.min(bwd.val.errors)
+
+regfit.full=regsubsets(y~.,data=all,nvmax=9,method="forward")
+reg.summary=summary(regfit.full)
+coef(regfit.full,3)
+
+regfit.full=regsubsets(y~.,data=all,nvmax=9,method="backward")
+reg.summary=summary(regfit.full)
+coef(regfit.full,3)
+
+```
+
+**(e)**
+```{r}
+library(glmnet)
+set.seed(1)
+dat.mat=model.matrix(y~poly(x,10,raw=T),data=all)[,-1]
+cv.out=cv.glmnet(dat.mat,y,alpha=1)
+plot(cv.out)
+bestlam=cv.out$lambda.min
+bestlam
+
+lasso.mod=glmnet(dat.mat,y,alpha=1,lambda=bestlam)
+coef(lasso.mod)
+```
+
+**(f)**
+??????
+
+
+**9.**
+
+**(a)**
+```{r}
+set.seed(1)
+train.index=sample(1:nrow(College),nrow(College)*3/4)
+test.index=(-train.index)
+train=College[train.index,]
+test=College[test.index,]
+x.train=subset(train,select=-Apps)
+x.test=subset(test,select=-Apps)
+y.train=train$Apps
+y.test=test$Apps
+```
+
+**(b)**
+```{r}
+lm.fit=lm(Apps~.,data=train)
+pred=predict(lm.fit,x.test)
+mean((y.test-pred)^2)
+```
+
+**(c)**
+```{r}
+set.seed(1)
+x=model.matrix(Apps~.,College)[,-1]
+y=College$Apps
+train=sample(1:nrow(College),nrow(College)*3/4)
+test=(-train)
+y.test=y[test]
+cv.out=cv.glmnet(x[train,],y[train],alpha=0)
+plot(cv.out)
+bestlam=cv.out$lambda.min
+bestlam
+ridge.mod=glmnet(x[train,],y[train],alpha=0,lambda=bestlam,thresh =1e-12) # alpha=0 means ridge
+ridge.pred=predict(ridge.mod,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+```
+
+**(d)**
+```{r}
+cv.out=cv.glmnet(x[train,],y[train],alpha=1)
+plot(cv.out)
+bestlam=cv.out$lambda.min
+bestlam
+lasso.mod=glmnet(x[train,],y[train],alpha=1,lambda=bestlam,thresh =1e-12) # alpha=0 means ridge
+ridge.pred=predict(lasso.mod,newx=x[test,])
+mean((ridge.pred-y.test)^2)
+
+sum(coef(lasso.mod)[,1]!=0)
+```
+
+**(e)**
+```{r}
+library(pls)
+pcr.fit=pcr(Apps~.,data=College,subset=train,scale=TRUE,validation="CV")
+validationplot(pcr.fit,val.type = "MSEP")
+pcr.pred=predict(pcr.fit,x[test,],ncomp=16)
+mean((pcr.pred-y.test)^2)
+pcr.fit=pcr(y~x,scale=TRUE,ncomp=16)
+summary(pcr.fit)
+```
+
+**(f)**
+```{r}
+pls.fit=plsr(Apps~.,data=College,subset=train,scale=TRUE,validation="CV")
+summary(pls.fit)
+pls.pred=predict(pls.fit,x[test,],ncomp=17)
+mean((pls.pred-y.test)^2)           # Test MSE is slightly higher than Ridge, Lasso and PCR
+# [1] 101417.5
+
+pls.fit=plsr(Apps~., data=College ,scale=TRUE,ncomp=17)
+summary(pls.fit)
+```
+
+**(g)**
+
+Based on the MSE from cross validation,ridge regression achieves lowest test error.
